@@ -64,12 +64,12 @@ chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
             return;
 
         var cssFiles = [
-                'assets/css/tab-switcher.css'
+                'assets/css/wunderlist-navigator.css'
             ],
             jsFiles = [
                 'assets/lib/jquery.js',
                 'assets/lib/keymaster.js',
-                'tab-switcher.js'
+                'wunderlist-navigator.js'
             ];
 
         eachTask([function (cb) {
