@@ -1,12 +1,12 @@
 'use strict';
 
 /**
- * TabSwitcher
+ * WunderlistNavigator
  *
- * This file is part of the TabSwitcher; an opensource Google Chrome extension
- * http://github.com/kamranahmedse/tab-switcher
+ * This file is part of the WunderlistNavigator; an opensource Google Chrome extension
+ * https://github.com/pedrocatre/wunderlist-navigator
  *
- * MIT (c) Kamran Ahmed <kamranahmed.se@gmail.com>
+ * MIT (c) Pedro Catré <http://pedrocatre.com/>
  */
 (function(){
 
@@ -44,7 +44,7 @@
         TAB_INPUT     : '.tab-switcher input[type="text"]',
 
         // Shortcut for activation
-        MASTER_KEY    : '⌘+⇧+k, ⌃+⇧+k',
+        MASTER_KEY    : '⌘+⇧+l',
 
         // Key codes for certain actions
         DOWN_KEY      : 40,
@@ -99,6 +99,7 @@
          * @param windowId
          */
         switch: function (tabId, windowId) {
+            // TODO just switch list instead of switch tab
             chrome.extension.sendMessage({
                 type: 'switchTab',
                 params: {
@@ -139,8 +140,8 @@
          * Populates the tabs
          * @param tabs
          */
-        function populateTabs(tabs) {
-            var tabsHtml = getTabsHtml(tabs);
+        function populateTabs(lists) {
+            var tabsHtml = getTabsHtml(lists);
 
             $(Config.TAB_LIST).html(tabsHtml);
             $(Config.TAB_ITEM).first().addClass(Config.SELECTED_CLASS);
@@ -264,18 +265,18 @@
          * @param tabs
          * @returns {string}
          */
-        function getTabsHtml(tabs) {
+        function getTabsHtml(lists) {
             var tabsHtml = '';
-            tabs.forEach(function(tab){
+            lists.forEach(function(list){
 
                 var tempTabTemplate = Config.TAB_TEMPLATE,
-                    faviconUrl = tab.favIconUrl || Config.DEFAULT_FAVICON;
+                    faviconUrl = list.favIconUrl || Config.DEFAULT_FAVICON;
 
                 tempTabTemplate = tempTabTemplate.replace('{favicon}', faviconUrl);
                 tempTabTemplate = tempTabTemplate.replace('{default_favicon}', Config.DEFAULT_FAVICON);
-                tempTabTemplate = tempTabTemplate.replace('{title}', tab.title);
-                tempTabTemplate = tempTabTemplate.replace('{id}', tab.id);
-                tempTabTemplate = tempTabTemplate.replace('{windowId}', tab.windowId);
+                tempTabTemplate = tempTabTemplate.replace('{title}', list.title);
+                tempTabTemplate = tempTabTemplate.replace('{id}', list.href);
+                tempTabTemplate = tempTabTemplate.replace('{windowId}', list.windowId);
 
                 tabsHtml += tempTabTemplate;
             });
@@ -329,7 +330,7 @@
              * Binds the UI elements for the extension
              */
             bindUI: function () {
-
+                var self = this;
                 // mouse-down instead of click because click gets triggered after the blur event in which case tab
                 // switcher would already be hidden (@see blur event below) and click will not be performed
                 $(document).on('mousedown', Config.TAB_ITEM, function () {
@@ -378,11 +379,30 @@
                 });
 
                 // Master key binding for which extension will be enabled
-                key(Config.MASTER_KEY, function () {
+                function showNavigator() {
+                    console.log('........................Shortcut clicked');
                     $(Config.TAB_SWITCHER).show();
                     $(Config.TAB_INPUT).focus();
+                    var lists = [];
+                    $('.sidebarItem a').each(function (index, element) {
+                        var list = {};
+                        var $this = $(this);
+                        list.href = $this.attr('href');
+                        list.title = $this.find('.title').text();
+                        lists.push(list);
+                    });
+                    populateTabs(lists);
+                }
 
-                    BrowserTab.getAll(populateTabs);
+                window.showNavigator = showNavigator;
+
+                key(Config.MASTER_KEY, function () {
+                    if($(Config.TAB_SWITCHER).length === 0) {
+                        self.loadExtension('body');
+                    } else {
+                        showNavigator();
+                    }
+
                 });
             }
         };
