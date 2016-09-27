@@ -228,7 +228,9 @@
          */
         function switchSelectedTab() {
             var $firstSelected = $(Config.TAB_SWITCHER).find(Config.TAB_SELECTED).first();
-            BrowserTab.switch($firstSelected.data('tabId'), $firstSelected.data('windowId'));
+            window.location.href = 'https://www.wunderlist.com' + $firstSelected.data('tabId');
+            //
+            //BrowserTab.switch($firstSelected.data('tabId'), $firstSelected.data('windowId'));
         }
 
         /**
@@ -311,18 +313,22 @@
 
         return {
 
+            appendTheUi: function ($container) {
+                if (!($container instanceof jQuery)) {
+                    $container = $($container);
+                }
+
+                $container.append(Config.MAIN_TEMPLATE);
+                return $container;
+            },
+
             /**
              * Loads the extension in specified container
              *
              * @param $container
              */
             loadExtension: function ($container) {
-                if (!($container instanceof jQuery)) {
-                    $container = $($container);
-                }
-
-                $container.append(Config.MAIN_TEMPLATE);
-
+                this.appendTheUi($container);
                 this.bindUI();
             },
 
@@ -394,11 +400,9 @@
                     populateTabs(lists);
                 }
 
-                window.showNavigator = showNavigator;
-
                 key(Config.MASTER_KEY, function () {
                     if($(Config.TAB_SWITCHER).length === 0) {
-                        self.loadExtension('body');
+                        self.appendTheUi('body');
                     } else {
                         showNavigator();
                     }
